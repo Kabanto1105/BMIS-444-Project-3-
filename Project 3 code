@@ -1,0 +1,95 @@
+import pandas as pd 
+import numpy as np
+import matplotlib.pyplot as plt 
+import seaborn as sns
+listings_df = pd.read_csv('barcelona_listings.csv')
+listings_df.info()
+### Property Types by district in Barcelona ###
+room_counts = listings_df.groupby(
+    ['neighbourhood_group_cleansed', 'room_type']
+).size().reset_index(name='count')
+
+# Sort by neighborhood and descending count
+room_counts = room_counts.sort_values(
+    ['neighbourhood_group_cleansed', 'count'],
+    ascending=[True, False]
+)
+top_room_type_per_neighborhood = room_counts.loc[
+    room_counts.groupby(['neighbourhood_group_cleansed','room_type'])['count'].idxmax()
+].reset_index(drop=True)
+
+top_room_type_per_neighborhood
+# Set up the figure
+plt.figure(figsize=(12, 8))
+
+# Create the bar plot
+sns.barplot(
+    data=top_room_type_per_neighborhood,
+    x='count',
+    y='neighbourhood_group_cleansed',
+    hue='room_type',
+    palette='viridis'
+)
+
+# Formatting
+plt.title("Most Common Airbnb Room Types by District in Barcelona", fontsize=14)
+plt.xlabel("Number of Listings", fontsize=12)
+plt.ylabel("Neighborhood District", fontsize=12)
+plt.legend(title="Room Type", fontsize=10, loc = 'lower right')
+plt.grid(axis="x", linestyle="--", alpha=0.7)
+plt.tight_layout()
+
+# Show the plot
+plt.show()
+listings_df = pd.read_csv('barcelona_listings.csv')
+
+# Group by neighborhood and calculate average price per neighborhood
+price_by_neighborhood = listings_df.groupby('neighbourhood_group_cleansed')['price'].mean().reset_index()
+
+# Sort the data by price in descending order to show neighborhoods with the highest average price
+price_by_neighborhood_sorted = price_by_neighborhood.sort_values('price', ascending=False)
+
+# Display the top neighborhoods with the highest average price
+print("Top 10 neighborhoods with the highest average price")
+print(price_by_neighborhood_sorted.head(15))
+
+# Group by neighborhood to get average occupancy
+occupancy_by_neighborhood = listings_df.groupby('neighbourhood_group_cleansed')['estimated_occupancy_l365d'].mean().reset_index()
+
+# Sort by occupancy to identify neighborhoods with higher occupancy
+occupancy_by_neighborhood = occupancy_by_neighborhood.sort_values(by='estimated_occupancy_l365d', ascending=False)
+
+# Display the result
+occupancy_by_neighborhood.head(15)  # Shows neighborhoods with the highest average occupancy
+
+price_by_neighborhood = listings_df.groupby('neighbourhood_group_cleansed')['price'].mean().reset_index()
+
+# Sort by price in descending order
+price_by_neighborhood_sorted = price_by_neighborhood.sort_values(by='price', ascending=False)
+
+# Show price variation by room type and neighborhood
+price_variation = listings_df.groupby(['room_type', 'neighbourhood_group_cleansed'])['price'].mean().reset_index()
+
+print("\nPrice variation by room type and neighborhood:")
+print(price_variation)
+# Plot the price variation by neighborhood
+plt.figure(figsize=(10,6))
+plt.bar(price_by_neighborhood_sorted['neighbourhood_group_cleansed'], price_by_neighborhood_sorted['price'])
+plt.xticks(rotation=90)  # Rotate the x-axis labels for better readability
+plt.xlabel('Neighborhood')
+plt.ylabel('Average Price')
+plt.title('Price Variation by Neighborhood')
+plt.show()
+
+# Plot price  organized  by room type and neighborhood
+plt.figure(figsize=(12, 7))
+for room_type in price_variation['room_type'].unique():
+    room_data = price_variation[price_variation['room_type'] == room_type]
+    plt.plot(room_data['neighbourhood_group_cleansed'], room_data['price'], marker='o', label=room_type)
+
+plt.xlabel('Neighborhood')
+plt.ylabel('Average Price')
+plt.title('Price Variation by Room Type and Neighborhood')
+plt.xticks(rotation=90)
+plt.legend(title='Room Type')
+plt.show()
